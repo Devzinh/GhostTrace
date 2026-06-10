@@ -66,7 +66,7 @@ jobs:
       - name: Verify release assets
         shell: pwsh
         run: |
-          $file = Join-Path "${{ github.workspace }}" "src/GhostTrace.Installer/bin/x64/Release/en-US/GhostTrace-${{ env.PROJECT_VERSION }}-en-US-x64.msi"
+          $file = Join-Path "${{ github.workspace }}" "src/GhostTrace.Installer/bin/x64/Release/en-US/GhostTrace-${{ env.PROJECT_VERSION }}-x64.msi"
           if (-not (Test-Path $file)) {
             throw "Arquivo não encontrado: $file"
           }
@@ -83,7 +83,7 @@ jobs:
             > "Desinstalou? Ele ainda tá aqui, bestinha."
 
             ### Download
-            [`GhostTrace-${{ env.PROJECT_VERSION }}-x64.msi`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/GhostTrace-${{ env.PROJECT_VERSION }}-en-US-x64.msi)
+            [`GhostTrace-${{ env.PROJECT_VERSION }}-x64.msi`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/GhostTrace-${{ env.PROJECT_VERSION }}-x64.msi)
 
             > O app detecta o idioma do Windows automaticamente (pt-BR, en-US, es-ES).
 
@@ -92,4 +92,4 @@ jobs:
             - .NET 10 Desktop Runtime
             - Executar como Administrador (UAC necessário)
           files: |
-            ${{ github.workspace }}/src/GhostTrace.Installer/bin/x64/Release/en-US/GhostTrace-${{ env.PROJECT_VERSION }}-en-US-x64.msi
+            ${{ github.workspace }}/src/GhostTrace.Installer/bin/x64/Release/en-US/GhostTrace-${{ env.PROJECT_VERSION }}-x64.msi
