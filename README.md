@@ -31,6 +31,30 @@ Pois e. Nao foi.
 
 ---
 
+## Demo
+
+![GhostTrace em acao](assets/readme/demo.gif)
+
+---
+
+## Download
+
+<p align="center">
+  <a href="../../releases/latest">
+    <img src="https://img.shields.io/github/v/release/Devzinh/GhostTrace?style=for-the-badge&label=Download&color=1F8FFF" alt="Download latest release" />
+  </a>
+</p>
+
+| Idioma | Instalador |
+| --- | --- |
+| Portugues Brasil | `GhostTrace-<version>-pt-BR-x64.msi` |
+| English | `GhostTrace-<version>-en-US-x64.msi` |
+| Espanol | `GhostTrace-<version>-es-ES-x64.msi` |
+
+> Requer Windows 10/11 x64 · .NET 10 · Executar como Administrador
+
+---
+
 ## Por que GhostTrace
 
 Skill issue dos outros scanners: ou sao paidos demais, ou te jogam um log de 4000 linhas e te deixam sozinho.
@@ -176,8 +200,6 @@ Disponiveis:
 - English (en-US)
 - Portugues Brasil (pt-BR)
 - Espanol (es-ES)
-
-Instalador localizado: `GhostTrace-<version>-<culture>-x64.msi`
 
 ---
 
