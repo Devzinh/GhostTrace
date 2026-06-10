@@ -45,13 +45,12 @@ Pois e. Nao foi.
   </a>
 </p>
 
-| Idioma | Instalador |
+| Arquivo | Descricao |
 | --- | --- |
-| Portugues Brasil | `GhostTrace-<version>-pt-BR-x64.msi` |
-| English | `GhostTrace-<version>-en-US-x64.msi` |
-| Espanol | `GhostTrace-<version>-es-ES-x64.msi` |
+| `GhostTrace-<version>-x64.msi` | Instalador Windows x64 |
 
-> Requer Windows 10/11 x64 · .NET 10 · Executar como Administrador
+> Requer Windows 10/11 x64 · .NET 10 · Executar como Administrador  
+> Idioma detectado automaticamente pelo sistema; fallback para English.
 
 ---
 
