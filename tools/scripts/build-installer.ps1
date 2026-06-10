@@ -8,7 +8,7 @@
       1. dotnet publish of GhostTrace.CLI (win-x64, self-contained) into
          artifacts/publish/GhostTrace.CLI/win-x64 — the folder Package.wxs harvests.
       2. Builds the MSI installer (en-US) via the WiX SDK project.
-         The installer auto-detects the OS language at runtime.
+         The install wizard is English-only; the app auto-detects the OS language at runtime.
       3. Copies the resulting MSI into artifacts/installers.
 
 .EXAMPLE
