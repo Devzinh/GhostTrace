@@ -1,6 +1,5 @@
 name: Release GhostTrace
 
-# Dispara quando você criar uma tag v* (ex: v1.0.0)
 on:
   push:
     tags:
@@ -10,56 +9,52 @@ jobs:
   build-and-release:
     runs-on: windows-latest
     permissions:
-      contents: write   # necessário para criar a Release
+      contents: write
 
     steps:
-      # 1. Baixa o código
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Instala o .NET 10
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      # 3. Instala o WiX v4 como ferramenta global
       - name: Install WiX v4
         run: dotnet tool install --global wix
 
-      # 4. Restaura dependências do projeto principal
       - name: Restore
         run: dotnet restore
 
-      # 5. Compila o projeto principal (Release)
       - name: Build main project
         run: dotnet build --configuration Release --no-restore
 
-      # 6. Gera o .msi para cada cultura e renomeia
       - name: Build MSI pt-BR
         run: |
           dotnet build src/GhostTrace.Installer --configuration Release -p:Culture=pt-BR
-          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/Release" -Filter "*.msi" | Select-Object -First 1
-          Rename-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-pt-BR-x64.msi"
+          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/x64/Release" -Filter "*.msi" -Recurse | Select-Object -First 1
+          Write-Host "Found MSI: $($msi.FullName)"
+          Copy-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-pt-BR-x64.msi"
 
       - name: Build MSI en-US
         run: |
           dotnet build src/GhostTrace.Installer --configuration Release -p:Culture=en-US
-          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/Release" -Filter "*.msi" | Select-Object -First 1
-          Rename-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-en-US-x64.msi"
+          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/x64/Release" -Filter "*.msi" -Recurse | Select-Object -First 1
+          Write-Host "Found MSI: $($msi.FullName)"
+          Copy-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-en-US-x64.msi"
 
       - name: Build MSI es-ES
         run: |
           dotnet build src/GhostTrace.Installer --configuration Release -p:Culture=es-ES
-          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/Release" -Filter "*.msi" | Select-Object -First 1
-          Rename-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-es-ES-x64.msi"
+          $msi = Get-ChildItem -Path "src/GhostTrace.Installer/bin/x64/Release" -Filter "*.msi" -Recurse | Select-Object -First 1
+          Write-Host "Found MSI: $($msi.FullName)"
+          Copy-Item $msi.FullName "GhostTrace-${{ github.ref_name }}-es-ES-x64.msi"
 
-      # 7. Cria a Release no GitHub e sobe os 3 .msi
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "GhostTrace ${{ github.ref_name }}"
-          draft: true        # fica como rascunho até você revisar e publicar
+          draft: true
           prerelease: false
           body: |
             ## GhostTrace ${{ github.ref_name }}
@@ -81,6 +76,6 @@ jobs:
             - Executar como Administrador (UAC necessário)
 
           files: |
-            src/GhostTrace.Installer/bin/Release/GhostTrace-${{ github.ref_name }}-pt-BR-x64.msi
-            src/GhostTrace.Installer/bin/Release/GhostTrace-${{ github.ref_name }}-en-US-x64.msi
-            src/GhostTrace.Installer/bin/Release/GhostTrace-${{ github.ref_name }}-es-ES-x64.msi
+            GhostTrace-${{ github.ref_name }}-pt-BR-x64.msi
+            GhostTrace-${{ github.ref_name }}-en-US-x64.msi
+            GhostTrace-${{ github.ref_name }}-es-ES-x64.msi
