@@ -5,11 +5,10 @@
     <GhostTraceVersion Condition="'$(GhostTraceVersion)' == ''">1.5.0</GhostTraceVersion>
     <Platform>x64</Platform>
 
-    <!-- Localized installer: pass -p:MsiCulture=pt-BR|es-ES|en-US to build each MSI. -->
-    <MsiCulture Condition="'$(MsiCulture)' == ''">en-US</MsiCulture>
-    <Cultures>$(MsiCulture)</Cultures>
+    <!-- Single English installer; the app itself auto-detects the OS language at runtime. -->
+    <Cultures>en-US</Cultures>
 
-    <OutputName>GhostTrace-$(GhostTraceVersion)-$(MsiCulture)-x64</OutputName>
+    <OutputName>GhostTrace-$(GhostTraceVersion)-x64</OutputName>
     <SuppressIces>ICE38;ICE43;ICE57;ICE69;ICE80</SuppressIces>
     <DefineConstants>GhostTraceVersion=$(GhostTraceVersion)</DefineConstants>
   </PropertyGroup>
