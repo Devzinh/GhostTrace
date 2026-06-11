@@ -17,7 +17,8 @@ namespace GhostTrace.CLI.Runtime;
 /// </summary>
 internal static class SingleModuleJsonRunner
 {
-    public static async Task RunAsync(
+    /// <summary>Returns <c>true</c> when the JSON report was written successfully.</summary>
+    public static async Task<bool> RunAsync(
         IScanModule module,
         string reportTitle,
         FileInfo outputInfo,
@@ -45,6 +46,6 @@ internal static class SingleModuleJsonRunner
             ScanId: scanId,
             GeneratedAtUtc: DateTimeOffset.UtcNow);
 
-        await JsonReportHelper.TryWriteReportAsync(outputInfo, descriptor, results);
+        return await JsonReportHelper.TryWriteReportAsync(outputInfo, descriptor, results);
     }
 }

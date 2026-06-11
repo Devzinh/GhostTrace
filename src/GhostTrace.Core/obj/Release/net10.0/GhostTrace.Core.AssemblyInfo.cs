@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GhostTrace.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8c47688ef24925f3ad292dca7212dd581daf4048")]
 [assembly: System.Reflection.AssemblyProductAttribute("GhostTrace.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GhostTrace.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Read-only Windows forensic scanner")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.5.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.5.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.5.0+df6f05fac0cf59ed2626fa706e0fad2c220b9c09")]
 [assembly: System.Reflection.AssemblyProductAttribute("GhostTrace")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GhostTrace.CLI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.5.0.0")]

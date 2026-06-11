@@ -102,6 +102,7 @@ public sealed class LocaleStrings
     public string UnsupportedHiveFmt { get; init; } = "unsupported hive: {0}";
     public string KeyNotFoundFmt { get; init; } = "key not found: {0}";
     public string ValueNotFoundFmt { get; init; } = "value not found: {0}";
+    public string BlockedDirFmt { get; init; } = "blocked (not a validated product-owned location): {0}";
 
     // ── Cleanup log file ──
     public string LogTitle { get; init; } = "GhostTrace Cleanup Log";

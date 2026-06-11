@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Runtime.Versioning;
 using GhostTrace.Modules.ScheduledTasks;
 using GhostTrace.CLI.Runtime;
@@ -20,16 +21,21 @@ public sealed class ScanTaskCacheJsonCommand : Command
 
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(FileInfo outputInfo)
     {
         Console.WriteLine("[INFO] Starting Task Cache scan...");
         Console.WriteLine("[INFO] Targets:     HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\TaskCache\\Tree");
         Console.WriteLine($"[INFO] Output File: {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new TaskCacheScanModule(), "Task Cache Scan Report", outputInfo);
+        return ok ? 0 : 1;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using GhostTrace.Core.Models;
 using GhostTrace.Analysis;
@@ -113,6 +114,99 @@ public sealed class ScheduledTasksCorrelationEngineTests
         Assert.Equal("StructuralOnly", result.Label);
         Assert.Equal(CorrelationSeverity.Medium, result.Severity);
         Assert.Null(result.ComSource);
+    }
+
+    [Fact]
+    public void Correlate_MissingSdWithoutCom_WithDegradedComCollection_ShouldDowngradeToWarning()
+    {
+        // Arrange: COM enumeration was only partial — a folder failed to enumerate.
+        var comFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTask", "SafeTask", @"\SafeTask", null, "Safe")
+        };
+
+        var regFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTaskCacheEntry", "GhostTask", $@"{RegPrefix}GhostTask", null, "Id: {...} | HasSD: False | ANOMALIES: MISSING_SD (Ghost Task Indicator)")
+        };
+
+        // Act
+        var results = _engine.Correlate(comFindings, regFindings, comCollectionDegraded: true, regCollectionDegraded: false);
+
+        // Assert: absence from a partially-enumerated COM view is degraded evidence.
+        Assert.Single(results);
+        var result = results[0];
+        Assert.Equal("GhostCandidate-DegradedEvidence", result.Label);
+        Assert.Equal(CorrelationSeverity.Low, result.Severity);
+        Assert.Contains("partial", result.Reason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Correlate_StructuralOnly_WithDegradedComCollection_ShouldDowngradeToInfo()
+    {
+        // Arrange
+        var comFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTask", "SafeTask", @"\SafeTask", null, "Safe")
+        };
+
+        var regFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTaskCacheEntry", "OrphanTask", $@"{RegPrefix}OrphanTask", null, "Id: {...} | HasSD: True")
+        };
+
+        // Act
+        var results = _engine.Correlate(comFindings, regFindings, comCollectionDegraded: true, regCollectionDegraded: false);
+
+        // Assert
+        Assert.Single(results);
+        Assert.Equal("StructuralOnly-DegradedEvidence", results[0].Label);
+        Assert.Equal(CorrelationSeverity.Info, results[0].Severity);
+    }
+
+    [Fact]
+    public void Correlate_AnomalyWithCom_WithDegradedCollections_ShouldKeepStructuralAnomaly()
+    {
+        // Arrange: a directly observed registry anomaly does not depend on absence,
+        // so degraded collection must not suppress it.
+        var comFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTask", "BrokenTask", @"\BrokenTask", null, "COM sees this")
+        };
+
+        var regFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTaskCacheEntry", "BrokenTask", $@"{RegPrefix}BrokenTask", null, "Id: {...} | HasSD: False | ANOMALIES: MISSING_SD")
+        };
+
+        // Act
+        var results = _engine.Correlate(comFindings, regFindings, comCollectionDegraded: true, regCollectionDegraded: true);
+
+        // Assert
+        var anomaly = Assert.Single(results, r => r.Label == "StructuralAnomaly");
+        Assert.Equal(CorrelationSeverity.Medium, anomaly.Severity);
+    }
+
+    [Fact]
+    public void Correlate_WithDegradedRegistryCollection_ShouldEmitGlobalCoverageWarning()
+    {
+        // Arrange
+        var comFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTask", "SafeTask", @"\SafeTask", null, "Safe")
+        };
+        var regFindings = new List<ScanFinding>
+        {
+            new ScanFinding("ScheduledTaskCacheEntry", "SafeTask", $@"{RegPrefix}SafeTask", null, "Id: {...} | HasSD: True")
+        };
+
+        // Act
+        var results = _engine.Correlate(comFindings, regFindings, comCollectionDegraded: false, regCollectionDegraded: true);
+
+        // Assert
+        var coverage = Assert.Single(results, r => r.Label == "DegradedRegistryCoverage");
+        Assert.Equal("<GLOBAL>", coverage.LogicalPath);
+        Assert.Equal(CorrelationSeverity.Info, coverage.Severity);
     }
 
     [Fact]

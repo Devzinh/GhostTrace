@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Runtime.Versioning;
 using GhostTrace.Modules.Persistence;
 using GhostTrace.CLI.Runtime;
@@ -20,16 +21,21 @@ public sealed class ScanPersistJsonCommand : Command
 
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(FileInfo outputInfo)
     {
         Console.WriteLine("[INFO] Starting Persistence scan...");
         Console.WriteLine("[INFO] Targets:     HKCU & HKLM Run/RunOnce keys, User & Common Startup folders");
         Console.WriteLine($"[INFO] Output File: {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new PersistenceScanModule(), "Persistence Scan Report", outputInfo);
+        return ok ? 0 : 1;
     }
 }

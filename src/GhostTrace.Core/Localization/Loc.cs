@@ -145,6 +145,7 @@ public static class Loc
         UnsupportedHiveFmt = "hive não suportada: {0}",
         KeyNotFoundFmt = "chave não encontrada: {0}",
         ValueNotFoundFmt = "valor não encontrado: {0}",
+        BlockedDirFmt = "bloqueado (local não validado como pertencente ao produto): {0}",
 
         LogTitle = "GhostTrace - Log de Limpeza",
         LogGenerated = "Gerado",
@@ -277,6 +278,7 @@ public static class Loc
         UnsupportedHiveFmt = "hive no compatible: {0}",
         KeyNotFoundFmt = "clave no encontrada: {0}",
         ValueNotFoundFmt = "valor no encontrado: {0}",
+        BlockedDirFmt = "bloqueado (ubicación no validada como propiedad del producto): {0}",
 
         LogTitle = "GhostTrace - Registro de Limpieza",
         LogGenerated = "Generado",

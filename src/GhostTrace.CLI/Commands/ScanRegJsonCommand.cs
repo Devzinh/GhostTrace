@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
 using GhostTrace.Modules.Registry;
@@ -32,21 +33,27 @@ public sealed class ScanRegJsonCommand : Command
         AddArgument(subKeyArgument);
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, hiveArgument, subKeyArgument, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var hiveName = context.ParseResult.GetValueForArgument(hiveArgument)!;
+            var subKeyPath = context.ParseResult.GetValueForArgument(subKeyArgument)!;
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(hiveName, subKeyPath, outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(string hiveName, string subKeyPath, FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(string hiveName, string subKeyPath, FileInfo outputInfo)
     {
         if (!Enum.TryParse<RegistryHive>(hiveName, true, out _))
         {
             Console.WriteLine($"[ERROR] Invalid registry hive: '{hiveName}'. Use values like CurrentUser or LocalMachine.");
-            return;
+            return 1;
         }
 
         if (string.IsNullOrWhiteSpace(subKeyPath))
         {
             Console.WriteLine($"[ERROR] Subkey path cannot be empty.");
-            return;
+            return 1;
         }
 
         Console.WriteLine("[INFO] Starting registry scan...");
@@ -54,12 +61,13 @@ public sealed class ScanRegJsonCommand : Command
         Console.WriteLine($"[INFO] SubKey:      {subKeyPath}");
         Console.WriteLine($"[INFO] Output File: {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new RegistryScanModule(), "Registry Scan Report", outputInfo,
             options: new Dictionary<string, string>
             {
                 ["registryHive"] = hiveName,
                 ["subKeyPath"] = subKeyPath
             });
+        return ok ? 0 : 1;
     }
 }
