@@ -208,6 +208,12 @@ Disponiveis:
 
 ---
 
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
 **Se o seu objetivo e "quero saber o que sobrou de verdade, nao no achismo":**
 
 GhostTrace e esse cara. Projeto serio. Visual moderno. Zero enrolacao.
