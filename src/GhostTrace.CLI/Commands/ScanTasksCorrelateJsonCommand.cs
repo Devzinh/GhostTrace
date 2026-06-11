@@ -1,5 +1,6 @@
 using System;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.IO;
 using System.Runtime.Versioning;
 using System.Threading;
@@ -24,8 +25,10 @@ public static class ScanTasksCorrelateJsonCommand
         
         command.AddOption(outputOption);
 
-        command.SetHandler(async (FileInfo outputInfo) =>
+        command.SetHandler(async (InvocationContext context) =>
         {
+            var outputInfo = context.ParseResult.GetValueForOption(outputOption)!;
+
             Console.WriteLine("[INFO] Starting Scheduled Tasks correlation...");
             Console.WriteLine("[INFO] Coverage: COM API + TaskCache Registry");
 
@@ -45,9 +48,9 @@ public static class ScanTasksCorrelateJsonCommand
             );
 
             Console.WriteLine($"[INFO] Correlation complete. Generating report at '{outputInfo.FullName}'...");
-            await JsonReportHelper.TryWritePayloadAsync(outputInfo, descriptor, result);
-
-        }, outputOption);
+            bool ok = await JsonReportHelper.TryWritePayloadAsync(outputInfo, descriptor, result);
+            context.ExitCode = ok ? 0 : 1;
+        });
 
         return command;
     }

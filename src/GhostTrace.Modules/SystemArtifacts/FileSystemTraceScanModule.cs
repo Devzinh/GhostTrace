@@ -76,9 +76,17 @@ public sealed class FileSystemTraceScanModule : IScanModule
                 foreach (var file in Directory.EnumerateFiles(dir))
                 {
                     if (matches >= MaxMatches) return;
-                    if (Path.GetFileName(file).Contains(target, StringComparison.OrdinalIgnoreCase))
+                    string fileName = Path.GetFileName(file);
+                    if (fileName.Contains(target, StringComparison.OrdinalIgnoreCase))
                     {
-                        AddFileTrace(builder, file);
+                        // Same product-owned confidence rule as folders: only a file
+                        // sitting directly in a curated root whose name starts with
+                        // the target is removable. A name hit inside an unrelated
+                        // shared path is a report-only hint.
+                        bool highConfidence = depth == 0 &&
+                            fileName.StartsWith(target, StringComparison.OrdinalIgnoreCase);
+
+                        AddFileTrace(builder, file, highConfidence);
                         matches++;
                     }
                 }
@@ -99,7 +107,14 @@ public sealed class FileSystemTraceScanModule : IScanModule
 
                 if (folderName.Contains(target, StringComparison.OrdinalIgnoreCase))
                 {
-                    AddFolderTrace(builder, sub);
+                    // Only a folder that sits directly under a curated root AND whose
+                    // name starts with the target is a high-confidence product-owned
+                    // leftover. Deeper or loose substring hits are report-only hints —
+                    // a substring like "edge" must never mark a shared folder removable.
+                    bool highConfidence = depth == 0 &&
+                        folderName.StartsWith(target, StringComparison.OrdinalIgnoreCase);
+
+                    AddFolderTrace(builder, sub, highConfidence);
                     matches++;
                     // Do not enqueue: the whole folder is the trace.
                 }
@@ -111,31 +126,33 @@ public sealed class FileSystemTraceScanModule : IScanModule
         }
     }
 
-    private static void AddFileTrace(ScanResultBuilder builder, string file)
+    private static void AddFileTrace(ScanResultBuilder builder, string file, bool highConfidence)
     {
         DateTimeOffset? modified = null;
         long size = 0;
         try { var fi = new FileInfo(file); modified = fi.LastWriteTimeUtc; size = fi.Length; } catch { }
 
         builder.AddFinding(
-            category: "FilesystemTrace",
+            category: highConfidence ? "FilesystemTrace" : "FilesystemTraceHint",
             description: file,
             source: file,
             timestampUtc: modified,
-            rawValue: $"File | Size: {size} bytes | Modified: {modified?.ToString("o") ?? "N/A"}");
+            rawValue: $"File | Size: {size} bytes | Modified: {modified?.ToString("o") ?? "N/A"}{(highConfidence ? "" : " | Hint: name substring match only (not removable)")}");
     }
 
-    private static void AddFolderTrace(ScanResultBuilder builder, string folder)
+    private static void AddFolderTrace(ScanResultBuilder builder, string folder, bool highConfidence)
     {
         DateTimeOffset? modified = null;
         try { modified = new DirectoryInfo(folder).LastWriteTimeUtc; } catch { }
 
+        // "FilesystemTrace" is removable by the cleaner; "FilesystemTraceHint" is
+        // informational only and never offered for deletion.
         builder.AddFinding(
-            category: "FilesystemTrace",
+            category: highConfidence ? "FilesystemTrace" : "FilesystemTraceHint",
             description: folder,
             source: folder,
             timestampUtc: modified,
-            rawValue: $"Folder | Modified: {modified?.ToString("o") ?? "N/A"}");
+            rawValue: $"Folder | Modified: {modified?.ToString("o") ?? "N/A"}{(highConfidence ? "" : " | Hint: name substring match only (not removable)")}");
     }
 
     private static IEnumerable<string> CommonRoots()

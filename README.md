@@ -185,6 +185,7 @@ Sem jumpscare. Sem "ops deletei sem querer".
 - **Scan read-only** — so olha. Nao toca em nada.
 - **Limpeza com consentimento** — so remove depois de voce escrever SIM. Sem confirmacao implicita, sem clique acidental.
 - **Evidencia protegida** — caches de execucao e historicos ficam fora da limpeza. Nao se destroi prova.
+- **Delecao recursiva so em local confiavel** — pastas so entram na limpeza quando sao filhas diretas das raizes conhecidas de sobras (Program Files, ProgramData, AppData) e o nome da pasta comeca com o alvo. Match generico de substring vira apenas dica no relatorio (`FilesystemTraceHint`), nunca candidato a remocao.
 - **Offline total** — sem chamadas de rede. Sem telemetria. Sem surpresa no Wireshark.
 - **Sinal suspeito nao e sentenca** — e dado para analise, nao veredito automatico. Voce investiga, voce decide.
 

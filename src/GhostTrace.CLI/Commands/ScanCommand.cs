@@ -453,7 +453,7 @@ public class ScanCommand : Command
     private static void RunInteractiveCleanup(IReadOnlyList<ModuleScanResult> moduleResults, string outputDir, string stamp, string filterTerm)
     {
         var s = Loc.Current;
-        var removable = TraceCleaner.Collect(moduleResults);
+        var removable = TraceCleaner.Collect(moduleResults, filterTerm);
 
         AnsiConsole.WriteLine();
         if (removable.Count == 0)

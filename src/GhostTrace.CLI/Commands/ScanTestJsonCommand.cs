@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using GhostTrace.Modules;
 using GhostTrace.CLI.Runtime;
 
@@ -18,15 +19,20 @@ public sealed class ScanTestJsonCommand : Command
 
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(FileInfo outputInfo)
     {
         Console.WriteLine("[INFO] Starting test scan pipeline...");
         Console.WriteLine($"[INFO] Output will be saved to: {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new EchoScanModule(), "CLI Test Scan", outputInfo);
+        return ok ? 0 : 1;
     }
 }

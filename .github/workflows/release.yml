@@ -47,6 +47,10 @@ jobs:
       - name: Build solution
         run: dotnet build GhostTrace.sln --configuration ${{ env.CONFIGURATION }} --no-restore -p:GhostTraceVersion=${{ env.PROJECT_VERSION }}
 
+      # Mandatory gate: a release is never published if the test suite fails.
+      - name: Run tests
+        run: dotnet test GhostTrace.sln --configuration ${{ env.CONFIGURATION }} --no-build --verbosity normal
+
       - name: Publish CLI
         run: >-
           dotnet publish src/GhostTrace.CLI/GhostTrace.CLI.csproj

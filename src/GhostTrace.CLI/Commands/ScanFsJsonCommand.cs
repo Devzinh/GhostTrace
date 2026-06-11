@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Runtime.Versioning;
 using GhostTrace.Modules.Filesystem;
 using GhostTrace.CLI.Runtime;
@@ -26,26 +27,32 @@ public sealed class ScanFsJsonCommand : Command
         AddArgument(targetArgument);
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, targetArgument, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var targetInfo = context.ParseResult.GetValueForArgument(targetArgument)!;
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(targetInfo, outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(DirectoryInfo targetInfo, FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(DirectoryInfo targetInfo, FileInfo outputInfo)
     {
         if (!targetInfo.Exists)
         {
             Console.WriteLine($"[ERROR] Target directory does not exist: '{targetInfo.FullName}'.");
-            return;
+            return 1;
         }
 
         Console.WriteLine("[INFO] Starting filesystem scan...");
         Console.WriteLine($"[INFO] Target Directory: {targetInfo.FullName}");
         Console.WriteLine($"[INFO] Output File:      {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new FilesystemScanModule(), "Filesystem Scan Report", outputInfo,
             options: new Dictionary<string, string>
             {
                 ["targetPath"] = targetInfo.FullName
             });
+        return ok ? 0 : 1;
     }
 }

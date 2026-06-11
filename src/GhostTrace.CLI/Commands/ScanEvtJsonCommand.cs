@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Runtime.Versioning;
 using GhostTrace.Modules.EventLogs;
 using GhostTrace.CLI.Runtime;
@@ -31,22 +32,28 @@ public sealed class ScanEvtJsonCommand : Command
         AddArgument(maxEntriesArgument);
         AddArgument(outputArgument);
 
-        this.SetHandler(ExecuteAsync, logArgument, maxEntriesArgument, outputArgument);
+        this.SetHandler(async (InvocationContext context) =>
+        {
+            var logName = context.ParseResult.GetValueForArgument(logArgument)!;
+            var maxEntries = context.ParseResult.GetValueForArgument(maxEntriesArgument);
+            var outputInfo = context.ParseResult.GetValueForArgument(outputArgument)!;
+            context.ExitCode = await ExecuteAsync(logName, maxEntries, outputInfo);
+        });
     }
 
-    private async Task ExecuteAsync(string logName, int maxEntries, FileInfo outputInfo)
+    private async Task<int> ExecuteAsync(string logName, int maxEntries, FileInfo outputInfo)
     {
         if (!string.Equals(logName, "Application", StringComparison.OrdinalIgnoreCase) && 
             !string.Equals(logName, "System", StringComparison.OrdinalIgnoreCase))
         {
             Console.WriteLine($"[ERROR] Invalid log name: '{logName}'. Only 'Application' or 'System' are supported in v1.");
-            return;
+            return 1;
         }
 
         if (maxEntries <= 0)
         {
             Console.WriteLine($"[ERROR] Max entries must be a positive integer.");
-            return;
+            return 1;
         }
 
         Console.WriteLine("[INFO] Starting Event Log scan...");
@@ -54,12 +61,13 @@ public sealed class ScanEvtJsonCommand : Command
         Console.WriteLine($"[INFO] Max Entries: {maxEntries}");
         Console.WriteLine($"[INFO] Output File: {outputInfo.FullName}");
 
-        await SingleModuleJsonRunner.RunAsync(
+        bool ok = await SingleModuleJsonRunner.RunAsync(
             new EventLogScanModule(), "Event Log Scan Report", outputInfo,
             options: new Dictionary<string, string>
             {
                 ["logName"] = logName,
                 ["maxEntries"] = maxEntries.ToString()
             });
+        return ok ? 0 : 1;
     }
 }

@@ -11,6 +11,20 @@ public sealed class ScheduledTasksCorrelationEngine
     public IReadOnlyList<ScheduledTaskCorrelationFinding> Correlate(
         IEnumerable<ScanFinding> comFindings,
         IEnumerable<ScanFinding> registryFindings)
+        => Correlate(comFindings, registryFindings, comCollectionDegraded: false, regCollectionDegraded: false);
+
+    /// <summary>
+    /// Correlates COM and TaskCache findings. When a source's collection was partial
+    /// or failed (<paramref name="comCollectionDegraded"/> / <paramref name="regCollectionDegraded"/>),
+    /// conclusions that depend on absence from that source are downgraded to warnings:
+    /// a task missing from a partially-enumerated COM view may simply be missing
+    /// coverage, not evidence of evasion.
+    /// </summary>
+    public IReadOnlyList<ScheduledTaskCorrelationFinding> Correlate(
+        IEnumerable<ScanFinding> comFindings,
+        IEnumerable<ScanFinding> registryFindings,
+        bool comCollectionDegraded,
+        bool regCollectionDegraded)
     {
         var comList = comFindings.ToList();
         var regList = registryFindings.ToList();
@@ -29,6 +43,20 @@ public sealed class ScheduledTasksCorrelationEngine
                 ComSource: null,
                 RegistrySource: null));
             return results;
+        }
+
+        // A partially-read registry tree means TaskCache entries may be missing
+        // entirely — the correlation can still flag what it sees, but the overall
+        // picture is incomplete and must be marked as such.
+        if (regCollectionDegraded)
+        {
+            results.Add(new ScheduledTaskCorrelationFinding(
+                LogicalPath: "<GLOBAL>",
+                Label: "DegradedRegistryCoverage",
+                Severity: CorrelationSeverity.Info,
+                Reason: "Registry collection was partial/failed. TaskCache coverage is incomplete; absence of a finding does not prove absence of a task.",
+                ComSource: null,
+                RegistrySource: null));
         }
 
         var comMap = new Dictionary<string, ScanFinding>(StringComparer.OrdinalIgnoreCase);
@@ -79,13 +107,17 @@ public sealed class ScheduledTasksCorrelationEngine
             bool zeroIndex = rawValue.Contains("MISSING_OR_ZERO_INDEX");
             bool anyAnomaly = rawValue.Contains("ANOMALIES:");
 
+            // Conclusions built on "absent in COM" are only trustworthy when the COM
+            // enumeration actually completed. With partial coverage they become warnings.
+            const string degradedComNote = " WARNING: COM collection was partial/failed — absence from COM may be missing coverage, not evasion.";
+
             if (missingSd && !hasCom)
             {
                 results.Add(new ScheduledTaskCorrelationFinding(
                     logicalPath,
-                    "GhostCandidate",
-                    CorrelationSeverity.High,
-                    "Task is present in Registry with missing Security Descriptor, but absent in COM API.",
+                    comCollectionDegraded ? "GhostCandidate-DegradedEvidence" : "GhostCandidate",
+                    comCollectionDegraded ? CorrelationSeverity.Low : CorrelationSeverity.High,
+                    "Task is present in Registry with missing Security Descriptor, but absent in COM API." + (comCollectionDegraded ? degradedComNote : ""),
                     null,
                     regFinding.RawValue));
             }
@@ -93,14 +125,17 @@ public sealed class ScheduledTasksCorrelationEngine
             {
                 results.Add(new ScheduledTaskCorrelationFinding(
                     logicalPath,
-                    "GhostCandidate",
-                    CorrelationSeverity.High,
-                    "Task is present in Registry with missing or zero index, but absent in COM API.",
+                    comCollectionDegraded ? "GhostCandidate-DegradedEvidence" : "GhostCandidate",
+                    comCollectionDegraded ? CorrelationSeverity.Low : CorrelationSeverity.High,
+                    "Task is present in Registry with missing or zero index, but absent in COM API." + (comCollectionDegraded ? degradedComNote : ""),
                     null,
                     regFinding.RawValue));
             }
             else if (anyAnomaly && hasCom)
             {
+                // Direct registry observation, not an absence inference — only the
+                // registry side's own degradation matters here, and a partially-read
+                // tree cannot fabricate anomalies, so the conclusion stands.
                 results.Add(new ScheduledTaskCorrelationFinding(
                     logicalPath,
                     "StructuralAnomaly",
@@ -115,9 +150,9 @@ public sealed class ScheduledTasksCorrelationEngine
                 // It might be orphaned, a leftover, or a cache desync. Not as severe as missing SD.
                 results.Add(new ScheduledTaskCorrelationFinding(
                     logicalPath,
-                    "StructuralOnly",
-                    CorrelationSeverity.Medium,
-                    "Task exists structurally in Registry but is completely absent from COM API. No explicit evasion anomalies found.",
+                    comCollectionDegraded ? "StructuralOnly-DegradedEvidence" : "StructuralOnly",
+                    comCollectionDegraded ? CorrelationSeverity.Info : CorrelationSeverity.Medium,
+                    "Task exists structurally in Registry but is completely absent from COM API. No explicit evasion anomalies found." + (comCollectionDegraded ? degradedComNote : ""),
                     null,
                     regFinding.RawValue));
             }

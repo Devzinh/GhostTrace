@@ -15,3 +15,4 @@ C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.Analysis\obj\Re
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.Analysis\obj\Release\net10.0\refint\GhostTrace.Analysis.dll
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.Analysis\obj\Release\net10.0\GhostTrace.Analysis.pdb
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.Analysis\obj\Release\net10.0\ref\GhostTrace.Analysis.dll
+C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.Analysis\obj\Release\net10.0\GhostTrace.Analysis.sourcelink.json

@@ -227,3 +227,4 @@ C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.CLI\bin\Release
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.CLI\bin\Release\net10.0\win-x64\mscordbi.dll
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.CLI\bin\Release\net10.0\win-x64\mscorrc.dll
 C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.CLI\bin\Release\net10.0\win-x64\msquic.dll
+C:\Users\roni9\Desktop\Desenvolvimento\GhostTrace\src\GhostTrace.CLI\obj\Release\net10.0\win-x64\GhostTrace.CLI.sourcelink.json
