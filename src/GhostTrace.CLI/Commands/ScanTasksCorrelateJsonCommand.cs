@@ -28,28 +28,54 @@ public static class ScanTasksCorrelateJsonCommand
         command.SetHandler(async (InvocationContext context) =>
         {
             var outputInfo = context.ParseResult.GetValueForOption(outputOption)!;
+            using var cancellationSource = new CancellationTokenSource();
+            ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
+            {
+                eventArgs.Cancel = true;
+                cancellationSource.Cancel();
+            };
+            Console.CancelKeyPress += cancelHandler;
 
-            Console.WriteLine("[INFO] Starting Scheduled Tasks correlation...");
-            Console.WriteLine("[INFO] Coverage: COM API + TaskCache Registry");
+            try
+            {
+                Console.WriteLine("[INFO] Starting Scheduled Tasks correlation...");
+                Console.WriteLine("[INFO] Coverage: COM API + TaskCache Registry");
 
-            // Empty context wrappers - analysis module handles everything independently
-            var comContext = new CliScanContext("ScheduledTasksCorrelation-COM", Guid.NewGuid(), DateTimeOffset.UtcNow);
-            var regContext = new CliScanContext("ScheduledTasksCorrelation-Registry", Guid.NewGuid(), DateTimeOffset.UtcNow);
+                // Empty context wrappers - analysis module handles everything independently
+                var comContext = new CliScanContext("ScheduledTasksCorrelation-COM", Guid.NewGuid(), DateTimeOffset.UtcNow);
+                var regContext = new CliScanContext("ScheduledTasksCorrelation-Registry", Guid.NewGuid(), DateTimeOffset.UtcNow);
 
-            var orchestrator = new ScheduledTasksCorrelationOrchestrator();
+                var orchestrator = new ScheduledTasksCorrelationOrchestrator();
 
-            var result = await orchestrator.RunCorrelationAsync(comContext, regContext, cancellationToken: CancellationToken.None);
+                var result = await orchestrator.RunCorrelationAsync(
+                    comContext,
+                    regContext,
+                    cancellationToken: cancellationSource.Token);
 
-            var descriptor = new ReportDescriptor(
-                Title: "GhostTrace Scheduled Tasks Correlation Report",
-                ScanId: Guid.NewGuid(),
-                Format: ReportFormat.Json,
-                GeneratedAtUtc: DateTimeOffset.UtcNow
-            );
+                var descriptor = new ReportDescriptor(
+                    Title: "GhostTrace Scheduled Tasks Correlation Report",
+                    ScanId: Guid.NewGuid(),
+                    Format: ReportFormat.Json,
+                    GeneratedAtUtc: DateTimeOffset.UtcNow
+                );
 
-            Console.WriteLine($"[INFO] Correlation complete. Generating report at '{outputInfo.FullName}'...");
-            bool ok = await JsonReportHelper.TryWritePayloadAsync(outputInfo, descriptor, result);
-            context.ExitCode = ok ? 0 : 1;
+                Console.WriteLine($"[INFO] Correlation complete. Generating report at '{outputInfo.FullName}'...");
+                bool ok = await JsonReportHelper.TryWritePayloadAsync(
+                    outputInfo,
+                    descriptor,
+                    result,
+                    cancellationSource.Token);
+                context.ExitCode = ok ? 0 : 1;
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("[INFO] Scheduled Tasks correlation cancelled.");
+                context.ExitCode = 130;
+            }
+            finally
+            {
+                Console.CancelKeyPress -= cancelHandler;
+            }
         });
 
         return command;
