@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B2A93707-9A0B-47F6-9B2D-6F3D0D7F3B9B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostTrace.Core", "src\GhostTrace.Core\GhostTrace.Core.csproj", "{781B39A3-2D02-4476-91E6-46B362C79923}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostTrace.Modules", "src\GhostTrace.Modules\GhostTrace.Modules.csproj", "{8FC2A141-610D-435D-9FA6-EE7EE31BA30C}"
@@ -16,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostTrace.Analysis", "src\GhostTrace.Analysis\GhostTrace.Analysis.csproj", "{1AC96FB7-2E2B-4056-B891-95DBF3604E1A}"
 EndProject
 Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "GhostTrace.Installer", "src\GhostTrace.Installer\GhostTrace.Installer.wixproj", "{A43FF8EF-F862-41D9-8E82-CCA7D93EC068}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostTrace.Tests.Unit", "tests\GhostTrace.Tests.Unit\GhostTrace.Tests.Unit.csproj", "{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +103,18 @@ Global
 		{A43FF8EF-F862-41D9-8E82-CCA7D93EC068}.Release|x64.Build.0 = Release|Any CPU
 		{A43FF8EF-F862-41D9-8E82-CCA7D93EC068}.Release|x86.ActiveCfg = Release|Any CPU
 		{A43FF8EF-F862-41D9-8E82-CCA7D93EC068}.Release|x86.Build.0 = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|x64.Build.0 = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|x64.ActiveCfg = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|x64.Build.0 = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,5 +126,6 @@ Global
 		{B8125CA5-D3E1-46A8-8B9E-58E1FF5E99A7} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{1AC96FB7-2E2B-4056-B891-95DBF3604E1A} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{A43FF8EF-F862-41D9-8E82-CCA7D93EC068} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{F4C7BF3C-2165-4608-8A5B-E2C01426C4BE} = {B2A93707-9A0B-47F6-9B2D-6F3D0D7F3B9B}
 	EndGlobalSection
 EndGlobal
