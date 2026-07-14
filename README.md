@@ -2,20 +2,12 @@
 
 ![GhostTrace Hero](assets/readme/hero.svg)
 
-<p align="center">
-  <a href="#-por-que-ghosttrace">Por que GhostTrace</a> •
-  <a href="#-fluxo-da-investigacao">Fluxo</a> •
-  <a href="#-instalacao-e-uso-rapido">Uso rapido</a> •
-  <a href="#-cobertura-forense">Cobertura</a> •
-  <a href="#-seguranca-forense">Seguranca</a>
-</p>
+[Por que GhostTrace](#por-que-ghosttrace) | [Fluxo](#fluxo-da-investigacao) | [Uso rapido](#instalacao-e-uso-rapido) | [Cobertura](#cobertura-forense) | [Seguranca](#seguranca-forense) | [Qualidade](#qualidade-e-entrega) | [Roadmap](docs/roadmap.md)
 
-<p align="center">
-  <img alt="Platform" src="https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-1F8FFF?style=for-the-badge" />
-  <img alt="Runtime" src="https://img.shields.io/badge/.NET-10-17B47E?style=for-the-badge" />
-  <img alt="Interface" src="https://img.shields.io/badge/UI-Spectre.Console-0E1A2F?style=for-the-badge" />
-  <img alt="Mode" src="https://img.shields.io/badge/Scan-Read--Only-F39C3D?style=for-the-badge" />
-</p>
+![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-1F8FFF?style=for-the-badge)
+![Runtime](https://img.shields.io/badge/.NET-10-17B47E?style=for-the-badge)
+![Interface](https://img.shields.io/badge/UI-Spectre.Console-0E1A2F?style=for-the-badge)
+![Mode](https://img.shields.io/badge/Scan-Read--Only-F39C3D?style=for-the-badge)
 
 ---
 
@@ -39,19 +31,15 @@ Pois e. Nao foi.
 
 ## Download
 
-<p align="center">
-  <a href="../../releases/latest">
-    <img src="https://img.shields.io/github/v/release/Devzinh/GhostTrace?style=for-the-badge&label=Download&color=1F8FFF" alt="Download latest release" />
-  </a>
-</p>
+[![Download latest release](https://img.shields.io/github/v/release/Devzinh/GhostTrace?style=for-the-badge&label=Download&color=1F8FFF)](../../releases/latest)
 
-| Idioma | Instalador |
-| --- | --- |
-| Portugues Brasil | `GhostTrace-<version>-pt-BR-x64.msi` |
-| English | `GhostTrace-<version>-en-US-x64.msi` |
-| Espanol | `GhostTrace-<version>-es-ES-x64.msi` |
+Baixe o instalador unico para Windows x64:
 
-> Requer Windows 10/11 x64 · .NET 10 · Executar como Administrador
+`GhostTrace-<version>-x64.msi`
+
+O MSI inclui uma publicacao self-contained; nao exige instalar o runtime .NET no alvo.
+
+> Requer Windows 10/11 x64 · Executar como Administrador
 
 ---
 
@@ -98,6 +86,7 @@ GhostTrace.CLI scan                                        # triagem completa, s
 GhostTrace.CLI scan-fs-json  <dir> <out.json>
 GhostTrace.CLI scan-reg-json <hive> <subkey> <out.json>
 GhostTrace.CLI scan-evt-json <log> <maxEntries> <out.json>
+GhostTrace.CLI scan-tasks-correlate-json --output C:\Cases\Host1\tasks-correlation.json
 ```
 
 Precisa de UAC porque le areas do sistema que o Windows esconde do usuario comum.
@@ -130,7 +119,7 @@ Nenhum fica de fora da cena do crime.
 | `AsepScanModule` | Winlogon, IFEO debugger, AppInit_DLLs, LSA packages, Active Setup |
 | `ScheduledTasksScanModule` | Tarefas agendadas via COM API do Task Scheduler |
 | `TaskCacheScanModule` | Anomalias em TaskCache\Tree, incluindo Ghost Tasks (T1053.005) |
-| `WmiPersistenceScanModule` | __EventFilter, __EventConsumer e binding (T1546.003) |
+| `WmiPersistenceScanModule` | `__EventFilter`, `__EventConsumer` e binding (T1546.003) |
 
 ### Evidencia de execucao (TA0002)
 
@@ -185,7 +174,9 @@ Sem jumpscare. Sem "ops deletei sem querer".
 - **Scan read-only** — so olha. Nao toca em nada.
 - **Limpeza com consentimento** — so remove depois de voce escrever SIM. Sem confirmacao implicita, sem clique acidental.
 - **Evidencia protegida** — caches de execucao e historicos ficam fora da limpeza. Nao se destroi prova.
-- **Delecao recursiva so em local confiavel** — pastas so entram na limpeza quando sao filhas diretas das raizes conhecidas de sobras (Program Files, ProgramData, AppData) e o nome da pasta comeca com o alvo. Match generico de substring vira apenas dica no relatorio (`FilesystemTraceHint`), nunca candidato a remocao.
+- **Delecao recursiva so em local confiavel** — pastas so entram na limpeza quando sao filhas diretas das raizes conhecidas de sobras (Program Files, ProgramData, AppData), o nome corresponde exatamente ao alvo e o caminho nao e junction/symlink. Match generico de substring vira apenas dica no relatorio (`FilesystemTraceHint`), nunca candidato a remocao.
+- **Relatorio consistente** — exportacoes JSON usam gravacao atomica: um arquivo existente so e substituido depois que o novo relatorio termina de ser escrito.
+- **Cancelamento cooperativo** — Ctrl+C cancela a correlacao de tarefas e a leitura de Prefetch sem transformar o cancelamento em resultado parcial silencioso.
 - **Offline total** — sem chamadas de rede. Sem telemetria. Sem surpresa no Wireshark.
 - **Sinal suspeito nao e sentenca** — e dado para analise, nao veredito automatico. Voce investiga, voce decide.
 
@@ -207,6 +198,18 @@ Disponiveis:
 ## Playbooks e documentacao
 
 - [Scheduled Tasks Correlation Playbook](docs/playbooks/scheduled-tasks-correlation.md) — investigacao de Ghost Tasks e manipulacao em registro.
+- [Roadmap](docs/roadmap.md) — melhorias planejadas, prioridades e limites do produto.
+
+---
+
+## Qualidade e entrega
+
+- **CI em pull requests** — restore, build e testes executam em Windows com .NET 10 antes da revisao ser integrada.
+- **Gate de release** — a mesma solucao e testada antes de publicar o MSI; releases estaveis aceitam somente tags `v<major>.<minor>.<patch>`.
+- **Testes ativos** — `src/GhostTrace.Tests` e `tests/GhostTrace.Tests.Unit` fazem parte de `GhostTrace.sln` e do gate de CI.
+- **Licenca** — distribuido sob [MIT](LICENSE).
+
+Para contribuir, mantenha os modulos read-only, propague `CancellationToken`, reporte cobertura incompleta como erro e adicione testes ao projeto adequado antes de abrir uma PR.
 
 ---
 
