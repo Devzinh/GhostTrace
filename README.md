@@ -1,218 +1,159 @@
 # GhostTrace
 
-![GhostTrace Hero](assets/readme/hero.svg)
+![GhostTrace](assets/readme/hero.svg)
 
-[Por que GhostTrace](#por-que-ghosttrace) | [Fluxo](#fluxo-da-investigacao) | [Uso rapido](#instalacao-e-uso-rapido) | [Cobertura](#cobertura-forense) | [Seguranca](#seguranca-forense) | [Qualidade](#qualidade-e-entrega) | [Roadmap](docs/roadmap.md)
+**Investigacao local de rastros de software no Windows, com coleta forense, relatorios auditaveis e limpeza estritamente opt-in.**
 
-![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11%20x64-1F8FFF?style=for-the-badge)
-![Runtime](https://img.shields.io/badge/.NET-10-17B47E?style=for-the-badge)
-![Interface](https://img.shields.io/badge/UI-Spectre.Console-0E1A2F?style=for-the-badge)
-![Mode](https://img.shields.io/badge/Scan-Read--Only-F39C3D?style=for-the-badge)
+[Primeiros passos](#primeiros-passos) | [Capacidades](#capacidades) | [Seguranca](#seguranca-forense) | [Documentacao](#documentacao) | [Roadmap](docs/roadmap.md)
 
----
-
-> **"Desinstalou? Ele ainda ta aqui, bestinha."**
-
-Voce clicou em *Desinstalar*. O Windows disse que foi. O software disse tchau.
-Mas aquele processo ainda ta no registro, na pasta, no prefetch, na tarefa agendada, no historico do RDP, no WMI, no—
-
-Pois e. Nao foi.
-
-**GhostTrace e o cara que nao aceita o "desinstalado" sem provas.**
-22 modulos forenses, uma passada so, tabela limpa, sem papo.
+[![Release](https://img.shields.io/github/v/release/Devzinh/GhostTrace?style=flat-square&label=release&color=1F8FFF)](../../releases/latest)
+![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-1F8FFF?style=flat-square)
+![Runtime](https://img.shields.io/badge/runtime-.NET%2010-17B47E?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-F39C3D?style=flat-square)
 
 ---
 
-## Demo
+GhostTrace ajuda analistas e administradores a responder uma pergunta simples: **o que ainda ficou no sistema depois que um software foi removido?**
 
-![GhostTrace em acao](assets/readme/demo.gif)
+Em uma unica execucao, a ferramenta coleta evidencia de persistencia, execucao, atividade de usuario e artefatos do sistema. Ela apresenta os achados por modulo, permite exportar registros locais e so oferece remocao para candidatos com regras de confianca restritas.
 
----
+> GhostTrace nao classifica um achado como prova conclusiva de comprometimento. Ele preserva e organiza evidencia para a sua analise.
 
-## Download
+## Primeiros passos
 
-[![Download latest release](https://img.shields.io/github/v/release/Devzinh/GhostTrace?style=for-the-badge&label=Download&color=1F8FFF)](../../releases/latest)
+### 1. Instale
 
-Baixe o instalador unico para Windows x64:
+Baixe o instalador mais recente em [Releases](../../releases/latest):
 
-`GhostTrace-<version>-x64.msi`
+```text
+GhostTrace-<version>-x64.msi
+```
 
-O MSI inclui uma publicacao self-contained; nao exige instalar o runtime .NET no alvo.
+O pacote e **self-contained**, portanto nao requer a instalacao previa do runtime .NET na maquina alvo. O GhostTrace deve ser executado como administrador para coletar artefatos protegidos do Windows.
 
-> Requer Windows 10/11 x64 · Executar como Administrador
+### 2. Investigue um nome
 
----
+```powershell
+GhostTrace.CLI scan --name nvidia
+```
 
-## Por que GhostTrace
+O modo interativo exibe o progresso, consolida os achados e permite exportar o relatorio. Quando existirem residuos elegiveis, a limpeza e opcional e exige selecao explicita seguida de confirmacao textual.
 
-Skill issue dos outros scanners: ou sao paidos demais, ou te jogam um log de 4000 linhas e te deixam sozinho.
+### 3. Automatize uma coleta
 
-GhostTrace nao.
+```powershell
+GhostTrace.CLI scan --name nvidia --quiet --output C:\Cases\Host1
+```
 
-- **Rapido** — dezenas de tecnicas forenses numa varredura unica. Sem ficar esperando barra de progresso ser criativa.
-- **Claro** — resultado em tabela unica. Nao e Sherlock Holmes, e profissional.
-- **Seguro** — read-only por default. Nao apaga nada sem voce falar SIM com todas as letras.
-- **Auditavel** — cada limpeza vira log. Voce tem recibo.
-- **Offline** — zero telemetria. Zero upload. Zero "mandando pra nuvem". Seu PC, sua vida.
+O modo `--quiet` nao abre prompts e grava o relatorio TXT no diretorio indicado. Se o relatorio nao puder ser persistido, o comando retorna um codigo de erro.
 
----
+### Comandos principais
 
-## Fluxo da investigacao
+| Objetivo | Comando |
+| --- | --- |
+| Abrir o menu interativo | `GhostTrace.CLI` |
+| Fazer triagem sem filtro | `GhostTrace.CLI scan` |
+| Procurar rastros de um software | `GhostTrace.CLI scan --name <nome>` |
+| Coletar para automacao | `GhostTrace.CLI scan --name <nome> --quiet --output <diretorio>` |
+| Correlacionar tarefas COM e TaskCache | `GhostTrace.CLI scan-tasks-correlate-json --output <arquivo.json>` |
+| Coletar diretorio, Registro ou Event Log | `scan-fs-json`, `scan-reg-json`, `scan-evt-json` |
+
+Para definir outro idioma da interface, passe `--lang` antes ou depois do comando:
+
+```powershell
+GhostTrace.CLI scan --name nvidia --lang en
+GhostTrace.CLI --lang es
+```
+
+## O que a coleta entrega
 
 ![Fluxo de investigacao](assets/readme/workflow.svg)
 
-```text
-voce: "quero investigar o nvidia"
-GhostTrace: OK watch this
-  -> aciona 22 modulos forenses
-  -> monta tabela com tudo que encontrou
-  -> pergunta se voce quer limpar
-  -> se sim: confirma, remove, gera log
-  -> se nao: te devolve os dados e tchau
-  -> opcional: exporta relatorio TXT
-```
-
-Sem magia. Sem achismo. So forense com UX decente.
-
----
-
-## Instalacao e uso rapido
-
-```text
-GhostTrace.CLI                                              # menu interativo (precisa de admin, nao questiona)
-GhostTrace.CLI scan --name nvidia                          # caca ao nvidia, limpeza opcional
-GhostTrace.CLI scan --name nvidia --quiet --output C:\Cases\Host1
-GhostTrace.CLI scan                                        # triagem completa, sem filtro
-GhostTrace.CLI scan-fs-json  <dir> <out.json>
-GhostTrace.CLI scan-reg-json <hive> <subkey> <out.json>
-GhostTrace.CLI scan-evt-json <log> <maxEntries> <out.json>
-GhostTrace.CLI scan-tasks-correlate-json --output C:\Cases\Host1\tasks-correlation.json
-```
-
-Precisa de UAC porque le areas do sistema que o Windows esconde do usuario comum.
-Nao e pedancia. E necessario.
-
-Forcando idioma se quiser ser diferentao:
-
-```text
-GhostTrace.CLI --lang es
-GhostTrace.CLI scan --name nvidia --lang en
-```
-
----
-
-## Cobertura forense
+1. Executa os modulos forenses disponiveis para o tipo de coleta escolhido.
+2. Mantem findings, erros e metadados separados por modulo.
+3. Exibe um resumo local e permite exportar um registro de texto ou JSON nos comandos direcionados.
+4. Opcionalmente registra qualquer acao de limpeza em um log separado.
 
 ![Cobertura de modulos](assets/readme/modules.svg)
 
-22 modulos. Cada um e um especialista diferente da mesma investigacao.
-Nenhum fica de fora da cena do crime.
+## Capacidades
 
-### Persistencia (MITRE ATT&CK TA0003)
-
-> Coisas que tentam voltar quando o Windows liga. Classico vilao.
-
-| Modulo | O que investiga |
+| Area | Evidencia coletada |
 | --- | --- |
-| `PersistenceScanModule` | Chaves Run/RunOnce + pastas Startup |
-| `ServicesScanModule` | Servicos e drivers com ImagePath suspeito (T1543.003) |
-| `AsepScanModule` | Winlogon, IFEO debugger, AppInit_DLLs, LSA packages, Active Setup |
-| `ScheduledTasksScanModule` | Tarefas agendadas via COM API do Task Scheduler |
-| `TaskCacheScanModule` | Anomalias em TaskCache\Tree, incluindo Ghost Tasks (T1053.005) |
-| `WmiPersistenceScanModule` | `__EventFilter`, `__EventConsumer` e binding (T1546.003) |
+| Persistencia | Run/RunOnce, Startup, servicos, Winlogon, IFEO, AppInit, LSA, Active Setup, WMI e tarefas agendadas |
+| Execucao | Prefetch, Shimcache, BAM/DAM, UserAssist e MUICache |
+| Atividade | Historico PowerShell, RDP, RecentDocs, USB e redes conhecidas |
+| Sistema e instalacao | Entradas de uninstall, StartupApproved e residuos em Program Files, ProgramData e AppData |
+| Correlacao | Divergencias entre Task Scheduler COM e TaskCache para investigacao de Ghost Tasks (T1053.005) |
 
-### Evidencia de execucao (TA0002)
+### Modulos de persistencia
 
-> O programa disse que nunca esteve aqui. Mentira. O prefetch entregou.
-
-| Modulo | O que investiga |
+| Modulo | Tecnica ou fonte |
 | --- | --- |
-| `ShimcacheScanModule` | AppCompatCache (formato 10ts para Win8.1/10/11) |
-| `PrefetchScanModule` | Arquivos .pf com decode XPRESS-Huffman (versoes 26/30/31) |
-| `BamScanModule` | BAM/DAM com ultimo tempo de execucao por SID |
-| `UserAssistScanModule` | Lancamentos GUI com contagem e ultimo run (ROT13) |
-| `MuiCacheScanModule` | MUICache do shell e nomes amigaveis embutidos |
+| `PersistenceScanModule` | Run/RunOnce e pastas Startup |
+| `ServicesScanModule` | Servicos e drivers com `ImagePath` |
+| `AsepScanModule` | Winlogon, IFEO, AppInit, LSA e Active Setup |
+| `ScheduledTasksScanModule` | Task Scheduler COM, incluindo tarefas ocultas |
+| `TaskCacheScanModule` | `TaskCache\Tree` e anomalias de tarefas |
+| `WmiPersistenceScanModule` | `__EventFilter`, `__EventConsumer` e bindings |
 
-### Atividade do usuario e artefatos de sistema
+### Modulos de execucao e atividade
 
-> O que rolou na rotina do PC. Tudo. Incluindo o que voce esqueceu.
-
-| Modulo | O que investiga |
+| Modulo | Fonte |
 | --- | --- |
-| `PowerShellHistoryScanModule` | Historico PSReadLine e sinais de download cradle/payload encoded (T1059.001) |
-| `RdpConnectionScanModule` | Historico de conexoes RDP de saida e pistas de usuario (T1021.001) |
-| `RecentDocsScanModule` | Arquivos/pastas recentes por usuario (Explorer RecentDocs) |
-| `UsbDeviceScanModule` | Historico de dispositivos removiveis via USBSTOR (T1052/T1091) |
-| `NetworkArtifactsScanModule` | Redirecionamentos no hosts e redes conectadas com datas |
-
-### Software instalado e residuos em disco
-
-> O famoso "desinstalei" mas a pasta ainda ta la. Capturado.
-
-| Modulo | O que investiga |
-| --- | --- |
-| `UninstallEntriesScanModule` | Programas instalados, versao, publisher, local e uninstall string |
-| `StartupApprovedScanModule` | Estado habilitado/desabilitado de entradas de inicializacao |
-| `FileSystemTraceScanModule` | Busca orientada por nome em Program Files, ProgramData e AppData |
-
-### Coletores direcionados (per-target)
-
-> Voce aponta o dedo. GhostTrace investiga.
-
-| Modulo | O que investiga |
-| --- | --- |
-| `FilesystemScanModule` | Metadados de arquivos sob um diretorio |
-| `RegistryScanModule` | Valores sob uma chave de registro |
-| `EventLogScanModule` | Entradas recentes de logs Application/System |
-
----
+| `PrefetchScanModule` | Arquivos `.pf` Windows 10/11, incluindo XPRESS-Huffman |
+| `ShimcacheScanModule` | AppCompatCache |
+| `BamScanModule` | BAM/DAM por SID |
+| `UserAssistScanModule` | Execucoes GUI e contagens de uso |
+| `MuiCacheScanModule` | MUICache do shell |
+| `PowerShellHistoryScanModule` | PSReadLine e sinais de comandos suspeitos |
+| `RdpConnectionScanModule` | Historico de conexoes RDP de saida |
+| `RecentDocsScanModule` | RecentDocs do Explorer |
+| `UsbDeviceScanModule` | Historico USBSTOR |
+| `NetworkArtifactsScanModule` | Hosts e perfis de rede |
 
 ## Seguranca forense
 
-Sem jumpscare. Sem "ops deletei sem querer".
+O comportamento padrao do GhostTrace e **somente leitura**. A limpeza existe para residuos de software, nao para remediacao automatica de malware.
 
-- **Scan read-only** — so olha. Nao toca em nada.
-- **Limpeza com consentimento** — so remove depois de voce escrever SIM. Sem confirmacao implicita, sem clique acidental.
-- **Evidencia protegida** — caches de execucao e historicos ficam fora da limpeza. Nao se destroi prova.
-- **Delecao recursiva so em local confiavel** — pastas so entram na limpeza quando sao filhas diretas das raizes conhecidas de sobras (Program Files, ProgramData, AppData), o nome corresponde exatamente ao alvo e o caminho nao e junction/symlink. Match generico de substring vira apenas dica no relatorio (`FilesystemTraceHint`), nunca candidato a remocao.
-- **Relatorio consistente** — exportacoes JSON usam gravacao atomica: um arquivo existente so e substituido depois que o novo relatorio termina de ser escrito.
-- **Cancelamento cooperativo** — Ctrl+C cancela a correlacao de tarefas e a leitura de Prefetch sem transformar o cancelamento em resultado parcial silencioso.
-- **Offline total** — sem chamadas de rede. Sem telemetria. Sem surpresa no Wireshark.
-- **Sinal suspeito nao e sentenca** — e dado para analise, nao veredito automatico. Voce investiga, voce decide.
+- A coleta nao transmite dados e nao depende de servicos cloud.
+- A limpeza nunca e preselecionada: exige escolha manual e uma palavra de confirmacao.
+- Caches de execucao e historicos permanecem fora da limpeza para preservar evidencia.
+- Diretorios so podem ser removidos se forem filhos diretos de roots confiaveis, se seu nome corresponder exatamente ao alvo e se nao forem junctions ou symlinks.
+- Correspondencias parciais viram `FilesystemTraceHint`: aparecem no relatorio, mas nao sao candidatas a remocao.
+- Relatorios JSON sao gravados atomicamente; um arquivo existente so e substituido depois que a nova escrita termina.
+- `Ctrl+C` cancela cooperativamente a correlacao de tarefas e a leitura de Prefetch.
 
----
+## Saidas e interpretacao
 
-## Idiomas (I18N)
+| Saida | Quando usar |
+| --- | --- |
+| Tabela interativa | Triagem manual e revisao rapida dos achados |
+| Relatorio TXT | Registro local do comando `scan`, inclusive em automacao com `--quiet` |
+| Relatorio JSON | Integracao e processamento de coletores direcionados ou correlacao de tarefas |
+| Log de limpeza | Auditoria de itens realmente removidos, ignorados ou com erro |
 
-Funciona igual streaming e jogo: detecta o idioma do sistema e ja abre no seu.
-Se o sistema e portugues, ele e portugues. Se nao tiver suporte, cai pro ingles. Simples.
+Um status `PartialSuccess` significa que pelo menos um modulo produziu achados, mas tambem reportou uma limitacao. Consulte os erros do modulo antes de concluir que a fonte esta limpa.
 
-Disponiveis:
+## Qualidade
 
-- English (en-US)
-- Portugues Brasil (pt-BR)
-- Espanol (es-ES)
+- Pull requests executam restore, build e testes em Windows com .NET 10.
+- O gate de release testa toda a `GhostTrace.sln` antes de construir o MSI.
+- `src/GhostTrace.Tests` e `tests/GhostTrace.Tests.Unit` fazem parte da solucao e da CI.
+- Releases estaveis aceitam apenas tags no formato `v<major>.<minor>.<patch>`.
+- A distribuicao e licenciada sob [MIT](LICENSE).
 
----
+## Documentacao
 
-## Playbooks e documentacao
+- [Playbook de correlacao de tarefas agendadas](docs/playbooks/scheduled-tasks-correlation.md)
+- [Roadmap de melhorias](docs/roadmap.md)
+- [Decisoes de UX e arquitetura](docs/design/ux-architecture-decisions.md)
+- [Guia dos projetos de teste](tests/README.md)
 
-- [Scheduled Tasks Correlation Playbook](docs/playbooks/scheduled-tasks-correlation.md) — investigacao de Ghost Tasks e manipulacao em registro.
-- [Roadmap](docs/roadmap.md) — melhorias planejadas, prioridades e limites do produto.
+## Contribuindo
 
----
-
-## Qualidade e entrega
-
-- **CI em pull requests** — restore, build e testes executam em Windows com .NET 10 antes da revisao ser integrada.
-- **Gate de release** — a mesma solucao e testada antes de publicar o MSI; releases estaveis aceitam somente tags `v<major>.<minor>.<patch>`.
-- **Testes ativos** — `src/GhostTrace.Tests` e `tests/GhostTrace.Tests.Unit` fazem parte de `GhostTrace.sln` e do gate de CI.
-- **Licenca** — distribuido sob [MIT](LICENSE).
-
-Para contribuir, mantenha os modulos read-only, propague `CancellationToken`, reporte cobertura incompleta como erro e adicione testes ao projeto adequado antes de abrir uma PR.
+Mantenha os modulos de coleta read-only, propague `CancellationToken`, reporte lacunas de cobertura no resultado e inclua testes antes de abrir uma PR. O [roadmap](docs/roadmap.md) lista as proximas areas com maior impacto.
 
 ---
 
-**Se o seu objetivo e "quero saber o que sobrou de verdade, nao no achismo":**
-
-GhostTrace e esse cara. Projeto serio. Visual moderno. Zero enrolacao.
+GhostTrace e uma ferramenta de apoio a investigacao. Valide cada achado no contexto do host, da linha do tempo e das politicas do seu ambiente.
